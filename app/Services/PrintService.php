@@ -7,18 +7,28 @@ use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\EscposImage;
 
+class PrinterConfigurationException extends \RuntimeException {}
+
 class PrintService
 {
     protected $printer;
 
     public function __construct()
     {
+        if (!config('printing.enabled', true)) {
+            throw new PrinterConfigurationException('Printing is disabled for this environment.');
+        }
+
+        $printerIp = config('printing.printer_ip');
+        $printerPort = config('printing.printer_port', 9100);
+
+        if (!$printerIp) {
+            throw new PrinterConfigurationException('No printer IP configured. Set PRINTING_PRINTER_IP in the environment.');
+        }
+
         // Connect to network thermal printer
-        $connector = new NetworkPrintConnector(
-            config('printing.printer_ip'),
-            config('printing.printer_port', 9100)
-        );
-        
+        $connector = new NetworkPrintConnector($printerIp, $printerPort);
+
         $this->printer = new Printer($connector);
     }
 

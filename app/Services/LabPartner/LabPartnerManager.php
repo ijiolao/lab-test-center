@@ -48,10 +48,11 @@ class LabPartnerManager
      */
     public function getAdapter(LabPartner $labPartner): LabPartnerInterface
     {
-        $adapterClass = $this->adapters[$labPartner->code] ?? null;
+        $adapterKey = $labPartner->adapter ?: $labPartner->code;
+        $adapterClass = $this->adapters[$adapterKey] ?? null;
 
         if (!$adapterClass) {
-            throw new \Exception("No adapter found for lab partner: {$labPartner->code}");
+            throw new \Exception("No adapter found for lab partner: {$adapterKey}");
         }
 
         if (!class_exists($adapterClass)) {
@@ -174,6 +175,6 @@ class LabPartnerManager
      */
     public function getRegisteredAdapters(): array
     {
-        return array_keys($this->adapters);
+        return $this->adapters;
     }
 }

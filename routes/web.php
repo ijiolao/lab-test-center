@@ -119,15 +119,6 @@ Route::middleware(['auth', 'can:view-admin-dashboard'])->prefix('admin')->name('
     
     // Lab Partners (Admin only)
     Route::middleware('can:manage-lab-partners')->group(function () {
-
-        Route::get('/{result}/download', 'download')->name('download');
-        Route::post('/{result}/regenerate-pdf', 'regeneratePdf')->name('regenerate-pdf');
-        Route::get('/{result}/raw', 'viewRaw')->name('raw');
-        Route::post('/{result}/notify', 'notifyPatient')->name('notify');
-    });
-    
-    // Lab Partners (Admin only)
-    Route::middleware('can:manage-lab-partners')->group(function () {
         Route::controller(Admin\LabPartnerController::class)->prefix('lab-partners')->name('lab-partners.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/create', 'create')->name('create');

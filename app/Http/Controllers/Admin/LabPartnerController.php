@@ -7,6 +7,7 @@ use App\Models\LabPartner;
 use App\Services\LabPartner\LabPartnerManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class LabPartnerController extends Controller
 {
@@ -60,9 +61,12 @@ class LabPartnerController extends Controller
      */
     public function store(Request $request)
     {
+        $adapterCodes = array_keys($this->labManager->getRegisteredAdapters());
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:lab_partners,code|alpha_dash',
+            'adapter' => ['required', Rule::in($adapterCodes)],
             'connection_type' => 'required|in:api,hl7,manual',
             'api_endpoint' => 'nullable|url|max:500',
             'api_key' => 'nullable|string|max:500',
@@ -205,9 +209,12 @@ class LabPartnerController extends Controller
      */
     public function update(Request $request, LabPartner $labPartner)
     {
+        $adapterCodes = array_keys($this->labManager->getRegisteredAdapters());
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|alpha_dash|unique:lab_partners,code,' . $labPartner->id,
+            'adapter' => ['required', Rule::in($adapterCodes)],
             'connection_type' => 'required|in:api,hl7,manual',
             'api_endpoint' => 'nullable|url|max:500',
             'api_key' => 'nullable|string|max:500',
