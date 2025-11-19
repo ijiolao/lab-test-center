@@ -39,3 +39,18 @@
 - **Where:** `Admin\OrderManagementController` only instantiates `PrintService` when `app()->bound(PrintService::class)` is true (lines 28–31), but no service provider binds that class anywhere in the application. The only reference to `PrintService` is this controller import.
 - **Impact:** `$this->printService` is always `null`, so every call to `admin.orders.print` immediately returns “Print service not configured,” even if `config/printing.php` is populated and the ESC/POS dependency is installed. Admins can’t print barcoded specimen labels at all.
 - **Recommendation:** Remove the `bound()` guard and let the container auto-resolve `PrintService`, or explicitly bind it in a service provider. Also consider injecting it directly into the controller constructor so the dependency is obvious and guaranteed.
+
+## 9. Transactional emails crash because their Markdown templates are missing
+- **Where:** `App\Mail\OrderConfirmation` and `App\Mail\ResultReady` both render `emails.order-confirmation`/`emails.result-ready`, but there is no `resources/views/emails` directory at all.
+- **Impact:** Every attempt to send a confirmation or “results ready” email throws `InvalidArgumentException: View [emails.order-confirmation] not found`, so patients never receive transactional notifications even though the controllers and listeners try to send them.
+- **Recommendation:** Add Markdown templates under `resources/views/emails/` for each mailer so PDF-ready order details and result summaries can be delivered without runtime failures.
+
+## 10. Sharing results always fails because the `SharedResult` mailable does not exist
+- **Where:** `Patient\ResultController::share()` instantiates `new \App\Mail\SharedResult(...)`, yet there is no corresponding class in `app/Mail` and no email template.
+- **Impact:** Patients cannot send results to clinicians—the controller fatals with `Error: Class "App\Mail\SharedResult" not found` as soon as they submit the form, so the feature is unusable.
+- **Recommendation:** Implement an `App\Mail\SharedResult` mailable (including a Markdown view) that attaches the patient’s PDF and provides the recipient/context fields the controller passes in.
+
+## 11. PDF generation endpoints fail because the Blade templates are missing
+- **Where:** `ResultService::generatePDF()` renders `pdfs.result` and the patient receipt endpoint renders `pdfs.receipt`, but there is no `resources/views/pdfs` folder or Blade file for either template.
+- **Impact:** Creating a result or downloading a receipt always throws `InvalidArgumentException: View [pdfs.result] not found`, so background jobs and user actions fail instantly and no PDF is ever produced.
+- **Recommendation:** Ship minimal Blade templates for both PDFs (result summary + payment receipt) so the DomPDF calls can succeed.

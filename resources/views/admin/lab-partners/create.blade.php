@@ -26,6 +26,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Code</label>
                         <input type="text" name="code" value="{{ old('code') }}" class="w-full border border-gray-300 rounded-lg px-4 py-3" placeholder="acme-lab" required>
+                        <p class="text-xs text-gray-500 mt-1">Human-friendly identifier used in exports and reports.</p>
                     </div>
                 </div>
 
@@ -61,6 +62,15 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Adapter</label>
+                        <select name="adapter" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                            <option value="">Select adapter</option>
+                            @foreach($registeredAdapters as $adapter => $class)
+                                <option value="{{ $adapter }}" {{ old('adapter') === $adapter ? 'selected' : '' }}>
+                                    {{ strtoupper($adapter) }} ({{ class_basename($class) }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Determines which integration class will submit orders.</p>
                         <select name="adapter" class="w-full border border-gray-300 rounded-lg px-4 py-3">
                             <option value="">Select adapter</option>
                             @foreach($registeredAdapters as $adapter => $class)
