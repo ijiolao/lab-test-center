@@ -285,13 +285,15 @@ class Order extends Model
      */
     public function markAsCollected(?int $userId = null): bool
     {
+        $previousStatus = $this->status;
+
         $this->update([
             'status' => 'collected',
             'collected_at' => now(),
             'collected_by' => $userId ?? auth()->id(),
         ]);
 
-        event(new \App\Events\OrderStatusChanged($this));
+        event(new \App\Events\OrderStatusChanged($this->fresh(), $previousStatus));
 
         return true;
     }
