@@ -22,7 +22,7 @@
                 @auth
                 <div class="flex items-center space-x-6">
                     <a href="{{ route('patient.dashboard') }}" class="text-gray-700 hover:text-blue-600">Dashboard</a>
-                    <a href="{{ route('patient.tests.index') }}" class="text-gray-700 hover:text-blue-600">Tests</a>
+                    <a href="{{ route('tests.index') }}" class="text-gray-700 hover:text-blue-600">Tests</a>
                     <a href="{{ route('patient.orders.index') }}" class="text-gray-700 hover:text-blue-600">My Orders</a>
                     <a href="{{ route('patient.results.index') }}" class="text-gray-700 hover:text-blue-600">Results</a>
                     
@@ -75,7 +75,7 @@
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="{{ route('patient.tests.index') }}" class="text-gray-400 hover:text-white">Available Tests</a></li>
+                        <li><a href="{{ route('tests.index') }}" class="text-gray-400 hover:text-white">Available Tests</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-white">How It Works</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-white">FAQ</a></li>
                     </ul>
