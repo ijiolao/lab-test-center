@@ -17,18 +17,14 @@ use Illuminate\Support\Str;
 
 class OrderManagementController extends Controller
 {
-    protected $orderService;
-    protected $printService;
+    protected OrderService $orderService;
+    protected PrintService $printService;
 
-    public function __construct(OrderService $orderService)
+    public function __construct(OrderService $orderService, PrintService $printService)
     {
         $this->middleware('auth');
         $this->orderService = $orderService;
-        
-        // Conditionally resolve PrintService if available
-        if (app()->bound(PrintService::class)) {
-            $this->printService = app(PrintService::class);
-        }
+        $this->printService = $printService;
     }
 
     /**
@@ -297,7 +293,7 @@ class OrderManagementController extends Controller
     {
         $this->authorize('print', $order);
 
-        if (!$this->printService) {
+        if (!$this->printService->isEnabled()) {
             return back()->with('error', 'Print service not configured. Please contact system administrator.');
         }
 
