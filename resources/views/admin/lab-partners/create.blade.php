@@ -71,6 +71,12 @@
                             @endforeach
                         </select>
                         <p class="text-xs text-gray-500 mt-1">Determines which integration class will submit orders.</p>
+                        <select name="adapter" class="w-full border border-gray-300 rounded-lg px-4 py-3">
+                            <option value="">Select adapter</option>
+                            @foreach($registeredAdapters as $adapter => $class)
+                                <option value="{{ $adapter }}" {{ old('adapter') === $adapter ? 'selected' : '' }}>{{ $adapter }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 

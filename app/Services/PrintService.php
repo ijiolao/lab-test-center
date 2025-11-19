@@ -7,6 +7,10 @@ use App\Models\OrderItem;
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 
+class PrinterConfigurationException extends \RuntimeException {}
+
+class PrinterConfigurationException extends \RuntimeException {}
+
 class PrintService
 {
     protected ?Printer $printer = null;
