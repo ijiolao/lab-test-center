@@ -13,6 +13,7 @@ return [
     */
 
     'webhook_secret' => env('LAB_WEBHOOK_SECRET'),
+    'webhook_tolerance' => env('LAB_WEBHOOK_TOLERANCE', 300),
 
     /*
     |--------------------------------------------------------------------------

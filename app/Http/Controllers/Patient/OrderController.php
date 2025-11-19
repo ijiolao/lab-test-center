@@ -217,6 +217,7 @@ class OrderController extends Controller
         }
 
         try {
+            $order->loadMissing('items');
             // Generate and return PDF receipt
             $pdf = Pdf::loadView('pdfs.receipt', compact('order'));
 

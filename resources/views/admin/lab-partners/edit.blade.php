@@ -44,17 +44,34 @@
                                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Code <span class="text-red-600">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="code" 
-                                   value="{{ old('code', $labPartner->code) }}"
-                                   required
-                                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">Lowercase, no spaces. Used for adapter matching.</p>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Code <span class="text-red-600">*</span>
+                        </label>
+                        <input type="text"
+                               name="code"
+                               value="{{ old('code', $labPartner->code) }}"
+                               required
+                               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">Lowercase, no spaces. Used for adapter matching.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Adapter <span class="text-red-600">*</span>
+                        </label>
+                        <select name="adapter"
+                                required
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select adapter</option>
+                            @foreach($registeredAdapters as $adapter => $class)
+                                <option value="{{ $adapter }}" {{ old('adapter', $labPartner->adapter ?: $labPartner->code) == $adapter ? 'selected' : '' }}>
+                                    {{ strtoupper($adapter) }} ({{ class_basename($class) }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Controls which integration class fulfills submissions.</p>
+                    </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">

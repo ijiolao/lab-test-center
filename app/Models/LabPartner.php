@@ -17,6 +17,7 @@ class LabPartner extends Model
     protected $fillable = [
         'name',
         'code',
+        'adapter',
         'connection_type',
         'api_endpoint',
         'api_key',
