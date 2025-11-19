@@ -300,8 +300,8 @@ class LabPartnerController extends Controller
      */
     public function destroy(LabPartner $labPartner)
     {
-        // Check if lab partner has any submissions (including soft deleted)
-        if ($labPartner->labSubmissions()->withTrashed()->exists()) {
+        // Prevent deletion while submissions still reference the partner
+        if ($labPartner->labSubmissions()->exists()) {
             return back()->with('error', 'Cannot delete lab partner with existing submissions');
         }
 

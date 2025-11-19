@@ -24,3 +24,33 @@
 - **Where:** `LabPartnerManager` only registers adapters for the hard-coded codes `quest`, `labcorp`, and `hl7`, and `getAdapter()` throws when a partner’s `code` key is not one of those. The admin create/edit form (`Admin\LabPartnerController`) lets staff enter any unique code without selecting an adapter class.
 - **Impact:** Creating a new lab partner with a code that doesn’t exactly match a pre-registered adapter succeeds, but every submission attempt later fails with “No adapter found for lab partner” because there is no mapping. That makes the entire lab-partner management UI misleading and non-functional for new partners.
 - **Recommendation:** Either restrict the `code` validation rule to the set of registered adapters or add a separate “Adapter” select field tied to `LabPartnerManager::registerAdapter()`. Persist the adapter choice on the model so `getAdapter()` can instantiate the right class regardless of the arbitrary partner code.
+
+## 6. Stripe refunds trigger a fatal error because the `RefundProcessed` mailable is missing
+- **Where:** `App\Http\Controllers\Api\PaymentWebhookController::handleRefund()` calls `Mail::to(...)->send(new RefundProcessed($order))`, but the class isn’t imported or defined anywhere in the codebase. [`rg "RefundProcessed"` only finds the controller reference.]
+- **Impact:** Whenever Stripe posts a `charge.refunded` event, the webhook handler will attempt to instantiate a non-existent class and crash with `Error: Class "App\Http\Controllers\Api\RefundProcessed" not found`. The webhook responds with HTTP 500, Stripe retries repeatedly, and the order’s payment status never updates reliably, so customers aren’t notified of successful refunds.
+- **Recommendation:** Either implement the missing `App\Mail\RefundProcessed` mailable (and import it) or remove the call until a proper notification is in place. Without that class the webhook can never finish, so fixing it unblocks automated refunds.
+
+## 7. Deleting a lab partner always throws because `withTrashed()` is called on a relation without soft deletes
+- **Where:** `Admin\LabPartnerController::destroy()` checks `$labPartner->labSubmissions()->withTrashed()->exists()` before deleting. The `LabSubmission` model never uses the `SoftDeletes` trait, so the relation doesn’t have a `withTrashed()` macro.
+- **Impact:** Every attempt to delete a lab partner results in `BadMethodCallException: Call to undefined method Illuminate\Database\Eloquent\Relations\HasMany::withTrashed()`. Staff can’t remove unused partners, cluttering the UI and risking accidental submissions to outdated integrations.
+- **Recommendation:** Drop the `withTrashed()` call (plain `labSubmissions()->exists()` is enough) or add soft-delete support to `LabSubmission`. Either approach restores the ability to delete partners safely after confirming there are no dependent submissions.
+
+## 8. Specimen label printing is unreachable because the controller never resolves `PrintService`
+- **Where:** `Admin\OrderManagementController` only instantiates `PrintService` when `app()->bound(PrintService::class)` is true (lines 28–31), but no service provider binds that class anywhere in the application. The only reference to `PrintService` is this controller import.
+- **Impact:** `$this->printService` is always `null`, so every call to `admin.orders.print` immediately returns “Print service not configured,” even if `config/printing.php` is populated and the ESC/POS dependency is installed. Admins can’t print barcoded specimen labels at all.
+- **Recommendation:** Remove the `bound()` guard and let the container auto-resolve `PrintService`, or explicitly bind it in a service provider. Also consider injecting it directly into the controller constructor so the dependency is obvious and guaranteed.
+
+## 9. Transactional emails crash because their Markdown templates are missing
+- **Where:** `App\Mail\OrderConfirmation` and `App\Mail\ResultReady` both render `emails.order-confirmation`/`emails.result-ready`, but there is no `resources/views/emails` directory at all.
+- **Impact:** Every attempt to send a confirmation or “results ready” email throws `InvalidArgumentException: View [emails.order-confirmation] not found`, so patients never receive transactional notifications even though the controllers and listeners try to send them.
+- **Recommendation:** Add Markdown templates under `resources/views/emails/` for each mailer so PDF-ready order details and result summaries can be delivered without runtime failures.
+
+## 10. Sharing results always fails because the `SharedResult` mailable does not exist
+- **Where:** `Patient\ResultController::share()` instantiates `new \App\Mail\SharedResult(...)`, yet there is no corresponding class in `app/Mail` and no email template.
+- **Impact:** Patients cannot send results to clinicians—the controller fatals with `Error: Class "App\Mail\SharedResult" not found` as soon as they submit the form, so the feature is unusable.
+- **Recommendation:** Implement an `App\Mail\SharedResult` mailable (including a Markdown view) that attaches the patient’s PDF and provides the recipient/context fields the controller passes in.
+
+## 11. PDF generation endpoints fail because the Blade templates are missing
+- **Where:** `ResultService::generatePDF()` renders `pdfs.result` and the patient receipt endpoint renders `pdfs.receipt`, but there is no `resources/views/pdfs` folder or Blade file for either template.
+- **Impact:** Creating a result or downloading a receipt always throws `InvalidArgumentException: View [pdfs.result] not found`, so background jobs and user actions fail instantly and no PDF is ever produced.
+- **Recommendation:** Ship minimal Blade templates for both PDFs (result summary + payment receipt) so the DomPDF calls can succeed.

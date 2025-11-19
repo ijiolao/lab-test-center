@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Mail\OrderConfirmation;
+use App\Mail\RefundProcessed;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
@@ -242,7 +243,14 @@ class PaymentWebhookController extends Controller
             ])
             ->log('Refund processed');
 
-        // Optional: Notify user of refund
-         Mail::to($order->user->email)->send(new RefundProcessed($order));
+        // Notify the customer that their refund completed
+        try {
+            Mail::to($order->user->email)->send(new RefundProcessed($order));
+        } catch (\Exception $e) {
+            Log::error('Failed to send refund notification', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

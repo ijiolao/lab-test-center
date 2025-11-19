@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SharedResult;
 use App\Models\Result;
 use App\Services\ResultService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ResultController extends Controller
 {
@@ -241,13 +243,15 @@ class ResultController extends Controller
             'message' => 'nullable|string|max:500',
         ]);
 
+        $message = $request->message ? strip_tags($request->message) : null;
+
         try {
             // Send email with result PDF
-            \Mail::to($request->recipient_email)
-                ->send(new \App\Mail\SharedResult(
+            Mail::to($request->recipient_email)
+                ->send(new SharedResult(
                     $result,
                     $request->recipient_name,
-                    strip_tags($request->message)
+                    $message
                 ));
 
             activity()
